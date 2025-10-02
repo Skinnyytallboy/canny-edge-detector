@@ -1,4 +1,6 @@
 from PIL import Image
+import matplotlib.pyplot as plt
+import numpy as np
 
 class Utils:
     @staticmethod
@@ -117,3 +119,43 @@ class Utils:
             img.save(filepath)
         except ImportError:
             print("Error saving image with PIL.")
+    
+    @staticmethod
+    def plot_frames(frames: list, titles: list, save_name: str) -> None:
+        try:
+            num_frames = len(frames)
+            if num_frames == 0:
+                return
+            if num_frames <= 4:
+                rows, cols = 2, 2
+            elif num_frames <= 6:
+                rows, cols = 2, 3
+            elif num_frames <= 8:
+                rows, cols = 2, 4
+            else:
+                rows = int(np.ceil(np.sqrt(num_frames)))
+                cols = int(np.ceil(num_frames / rows))
+            plt.figure(figsize=(4 * cols, 3 * rows))
+            for i in range(num_frames):
+                plt.subplot(rows, cols, i + 1)
+                frame_array = np.array(frames[i])
+                plt.imshow(frame_array, cmap='gray', vmin=0, vmax=255)
+                if i < len(titles):
+                    plt.title(titles[i], fontsize=10)
+                else:
+                    plt.title(f"Frame {i}", fontsize=10)
+                
+                plt.axis('off')
+            plt.tight_layout()
+            plt.savefig(save_name, bbox_inches='tight', dpi=150)
+            plt.close()
+            
+        except Exception as e:
+            print(f"Error creating visualization: {e}")
+            for i, frame in enumerate(frames):
+                try:
+                    title = titles[i] if i < len(titles) else f"frame_{i}"
+                    fallback_name = save_name.replace('.', f'_{title}.') 
+                    Utils.save_image(frame, fallback_name)
+                except:
+                    pass
