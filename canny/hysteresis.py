@@ -42,21 +42,27 @@ class Hysteresis:
         
         return edges_output
     
-    def follow_edge(self, magnitude, edges, i, j, Tl):
+    def follow_edge(self, magnitude, edges, start_i, start_j, Tl):
         height = len(magnitude)
         width = len(magnitude[0])
-        if i < 0 or i >= height or j < 0 or j >= width:
-            return
-        if self.visited[i][j]:
-            return
-        if magnitude[i][j] < Tl:
-            return
-        edges[i][j] = 1
-        self.visited[i][j] = True
-        neighbors = [
-            (-1, -1), (-1, 0), (-1, 1),
-            (0, -1),           (0, 1),
-            (1, -1),  (1, 0),  (1, 1)
-        ]
-        for di, dj in neighbors:
-            self.follow_edge(magnitude, edges, i + di, j + dj, Tl)
+        stack = [(start_i, start_j)]
+        while stack:
+            i, j = stack.pop()
+            if i < 0 or i >= height or j < 0 or j >= width:
+                continue
+            if self.visited[i][j]:
+                continue
+            if magnitude[i][j] < Tl:
+                continue
+            edges[i][j] = 1
+            self.visited[i][j] = True
+            neighbors = [
+                (-1, -1), (-1, 0), (-1, 1),
+                (0, -1),           (0, 1),
+                (1, -1),  (1, 0),  (1, 1)
+            ]
+            for di, dj in neighbors:
+                ni, nj = i + di, j + dj
+                if (0 <= ni < height and 0 <= nj < width and 
+                    not self.visited[ni][nj] and magnitude[ni][nj] >= Tl):
+                    stack.append((ni, nj))
