@@ -1,7 +1,57 @@
 from PIL import Image
 
 class Utils:
-    
+    @staticmethod
+    def read_image(filepath):
+        try:
+            img = Image.open(filepath).convert('L')
+            pixels = list(img.getdata())
+            width, height = img.size
+            image = []
+            for i in range(height):
+                row = []
+                for j in range(width):
+                    row.append(float(pixels[i * width + j]))
+                image.append(row)
+            return image
+        except ImportError:
+            pass
+        except Exception as e:
+            print(f"Read error: {e}")
+            return None
+        
+        try:
+            with open(filepath, 'rb') as f:
+                header = f.readline().decode().strip()
+                if header != 'P5':
+                    raise ValueError('Not a valid PGM file')
+                
+                dimensions = f.readline().decode().strip()
+                while dimensions.startswith('#'):
+                    dimensions = f.readline().decode().strip()
+                width, height = map(int, dimensions.split())
+                
+                maxval = int(f.readline().decode().strip())
+                if maxval > 255:
+                    raise ValueError('Only 8-bit PGM files are supported')
+                
+                pixels = f.read()
+                if len(pixels) != width * height:
+                    raise ValueError('Pixel data does not match specified dimensions')
+                
+                image = []
+                for i in range(height):
+                    row = []
+                    for j in range(width):
+                        row.append(float(pixels[i * width + j]))
+                    image.append(row)
+                
+                return image
+        except Exception as e:
+            print(f"Read error: {e}")
+            return None
+
+
     @staticmethod
     def save_image(image, filepath):
         height = len(image)
